@@ -46,8 +46,12 @@ def smiles_to_graph(smiles):
 class DDIGNN(torch.nn.Module):
     def __init__(self, num_node_features, hidden_channels, num_classes):
         super(DDIGNN, self).__init__()
+        
+        self.node_emb = Linear(num_node_features, hidden_channels)
+        self.norm = torch.nn.LayerNorm(hidden_channels)
+        
         # 3 GATConv layers
-        self.conv1 = GATConv(num_node_features, hidden_channels)
+        self.conv1 = GATConv(hidden_channels, hidden_channels)
         self.conv2 = GATConv(hidden_channels, hidden_channels)
         self.conv3 = GATConv(hidden_channels, hidden_channels)
         
@@ -55,13 +59,17 @@ class DDIGNN(torch.nn.Module):
         self.lin = Linear(hidden_channels * 2, num_classes)
 
     def forward_graph(self, x, edge_index, batch):
+        x = self.node_emb(x)
+        x = self.norm(x)
+        x = F.leaky_relu(x)
+
         # Pass through the 3 GATConv layers
         x = self.conv1(x, edge_index)
-        x = F.relu(x)
+        x = F.leaky_relu(x)
         x = self.conv2(x, edge_index)
-        x = F.relu(x)
+        x = F.leaky_relu(x)
         x = self.conv3(x, edge_index)
-        x = F.relu(x)
+        x = F.leaky_relu(x)
         
         # Global Mean Pooling
         x = global_mean_pool(x, batch)

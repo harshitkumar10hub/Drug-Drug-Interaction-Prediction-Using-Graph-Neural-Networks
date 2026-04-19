@@ -74,11 +74,11 @@ def train_gnn():
     
     print(f"Initializing GNN model (classes: {num_classes}, device: {device})...")
     model = DDIGNN(num_node_features, hidden_channels, num_classes).to(device)
-    optimizer = torch.optim.Adam(model.parameters(), lr=0.01)
+    optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
     
     criterion = torch.nn.CrossEntropyLoss()
     
-    epochs = 50
+    epochs = 5
     print("Training the GNN...")
     model.train()
     for epoch in range(epochs):
